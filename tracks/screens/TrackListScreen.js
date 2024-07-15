@@ -1,34 +1,40 @@
 import React, { useEffect, useContext, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { TrackContext } from '../Context/TrackContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TrackListScreen = ({ navigation }) => {
-  const { states, fetchTracks } = useContext(TrackContext);
-
-  const [isLoading, setIsLoading] = useState(true);
+  const { fetchTracks } = useContext(TrackContext);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [data, setData] = useState([]);
 
   useEffect(() => {
     const fetchTracksWrapper = async () => {
       try {
-        setIsLoading(true);  // Set loading state to true before fetching
-        setError(null);  // Clear previous errors
+        setIsLoading(true);
         await fetchTracks();
+        const trackData = await AsyncStorage.getItem('TrackData');
+        // console.log('trackData from AsyncStorage:', trackData); // Log retrieved data
+
+        if (trackData) {
+          const parsedData = JSON.parse(trackData); // Parse the JSON string
+          setData(parsedData.trackData);
+          console.log(data);
+        }
+        setIsLoading(false);
       } catch (error) {
         setError(error.message || 'Error fetching tracks');
-      } finally {
-        setIsLoading(false);  // Set loading state to false after fetching
+        setIsLoading(false);
       }
     };
 
-    fetchTracksWrapper();  // Fetch tracks on initial render
+    fetchTracksWrapper(); // Fetch tracks on initial render
 
-    const unsubscribe = navigation.addListener('focus', () => {
-      fetchTracksWrapper();  // Fetch tracks when the screen is focused
-    });
+    const unsubscribe = navigation.addListener('focus', fetchTracksWrapper);
 
     return unsubscribe;
-  }, [navigation, fetchTracks]);
+  }, []); // Added dependencies to useEffect
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
@@ -37,7 +43,9 @@ const TrackListScreen = ({ navigation }) => {
     >
       <View style={styles.itemContent}>
         <Text style={styles.title}>{item.name}</Text>
-        <Text style={styles.subtitle}>{item.date ? new Date(item.date).toLocaleDateString() : 'No Date Available'}</Text>
+        <Text style={styles.subtitle}>
+          {item.date ? new Date(item.date).toLocaleDateString() : 'No Date Available'}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -47,13 +55,15 @@ const TrackListScreen = ({ navigation }) => {
       {isLoading ? (
         <Text>Loading tracks...</Text>
       ) : error ? (
-        <Text>Error: {error}</Text>
-      ) : (
+        <Text style={styles.error}>Error: {error}</Text>
+      ) : data ? (
         <FlatList
-          data={states}
-          keyExtractor={(item) => item._id}
+          data={data}
+          keyExtractor={(item) => item._id.toString()} // Convert _id to string
           renderItem={renderItem}
         />
+      ) : (
+        <Text>No tracks found.</Text>
       )}
     </View>
   );
@@ -80,6 +90,9 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     color: '#888',
+  },
+  error: {
+    color: 'red',
   },
 });
 

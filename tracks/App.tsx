@@ -2,6 +2,7 @@ import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import Signin from './screens/SigninScreen';
 import Signup from './screens/SignupScreen';
 import AccountScreen from './screens/AccountScreen';
@@ -13,6 +14,9 @@ import {NavigationContextProvider} from './NavigationContext';
 import DefaultScreen from './screens/DefaultScreen';
 import {LocationContextProvider} from './Context/LocationContext';
 import {TrackContextProvider} from './Context/TrackContext';
+import {faPlusCircle} from '@fortawesome/free-solid-svg-icons';
+import {faGear} from '@fortawesome/free-solid-svg-icons';
+import {faLocationDot} from '@fortawesome/free-solid-svg-icons';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -27,21 +31,42 @@ const AuthStack = () => {
     </Stack.Navigator>
   );
 };
-const TracksMain = () => {
-  <Tab.Navigator initialRouteName="TrackList">
-    <Tab.Screen name="TrackList" component={TrackListScreen} />
-    <Tab.Screen name="TrackDetail" component={TrackDetailScreen} />
-  </Tab.Navigator>;
+
+const TracksMainStack = () => {
+  return (
+    <Stack.Navigator initialRouteName="TrackList">
+      <Stack.Screen name="TrackList" component={TrackListScreen} />
+      <Stack.Screen name="TrackDetail" component={TrackDetailScreen} />
+    </Stack.Navigator>
+  );
 };
 
 const MainTabNavigator = () => (
-  <Tab.Navigator initialRouteName="TrackCreate">
-    <Tab.Screen name="TrackCreate" component={TrackCreateScreen} />
+  <Tab.Navigator
+    initialRouteName="TracksMain"
+    screenOptions={{headerShown: false}}>
+    <Tab.Screen
+      name="TracksMain"
+      component={TracksMainStack}
+      options={{
+        title: 'Tracks Main',
+        tabBarIcon: () => <FontAwesomeIcon icon={faLocationDot} size={20} />,
+      }}
+    />
+    <Tab.Screen
+      name="TrackCreate"
+      component={TrackCreateScreen}
+      options={{
+        title: 'Track Create',
+        tabBarIcon: () => <FontAwesomeIcon icon={faPlusCircle} size={20} />,
+      }}
+    />
     <Tab.Screen
       name="Account"
       component={AccountScreen}
       options={{
         title: 'Sign Out',
+        tabBarIcon: () => <FontAwesomeIcon icon={faGear} size={20} />,
       }}
     />
   </Tab.Navigator>
@@ -56,7 +81,6 @@ const App = () => (
             <Stack.Navigator screenOptions={{headerShown: false}}>
               <Stack.Screen name="Auth" component={AuthStack} />
               <Stack.Screen name="Main" component={MainTabNavigator} />
-              <Stack.Screen name="TracksMain" component={TracksMain} />
             </Stack.Navigator>
           </ContextProvider>
         </TrackContextProvider>

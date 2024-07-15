@@ -5,7 +5,6 @@ export const CreateTrack = () => {
   const { createTracks } = useContext(TrackContext);
   const { state, reset } = useContext(LocationContext);
   const saveTrack = async () => {
-    console.log(state.name, state.locations);
     await createTracks(state.name, state.locations);
     reset();
   }
