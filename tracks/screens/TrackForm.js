@@ -1,4 +1,4 @@
-import React, { useContext, useState, useCallback } from 'react';
+import React, { useContext, useState, useCallback, useEffect } from 'react';
 import { View, Button, TextInput, StyleSheet } from 'react-native';
 import { LocationContext } from '../Context/LocationContext';
 import { CreateTrack } from '../hooks/useSaveTrack';
@@ -8,6 +8,8 @@ const TrackForm = () => {
   const { StartRecording, StopRecording, ChangeName, state } = useContext(LocationContext);
   const [saveTrack] = CreateTrack();
   const [name, setName] = useState('');
+  const [recording, setRecording] = useState(false);
+  const [showSaveButton, setShowSaveButton] = useState(false);
 
   const handleNameChange = (value) => {
     setName(value);
@@ -16,6 +18,27 @@ const TrackForm = () => {
 
   const DebounceNameChange = useCallback(debounce(handleNameChange, 2000), []);
 
+  useEffect(() => {
+    if (state.recording) {
+      setRecording(true);
+      setShowSaveButton(false);
+    } else if (!state.recording && recording) {
+      setRecording(false);
+      setShowSaveButton(true);
+    }
+  }, [state.recording, recording]);
+
+  const handleStartRecording = () => {
+    StartRecording();
+    setRecording(true);
+  };
+
+  const handleStopRecording = () => {
+    StopRecording();
+    setRecording(false);
+    setShowSaveButton(true);
+  };
+
   return (
     <View style={styles.container}>
       <TextInput
@@ -23,27 +46,31 @@ const TrackForm = () => {
         placeholder="Enter track name"
         placeholderTextColor="#888"
         onChangeText={DebounceNameChange}
+        // value={state?.name}
       />
-      {state.recording ? (
+      {recording ? (
         <Button
           title="Stop Recording"
-          onPress={() => StopRecording()}  // Ensure proper function call
+          onPress={handleStopRecording}
           color="#1E90FF"
         />
       ) : (
         <Button
           title="Start Recording"
-          onPress={() => StartRecording()}  // Ensure proper function call
+          onPress={handleStartRecording}
           color="#1E90FF"
         />
       )}
-      {!state.recording ? (
-        <Button
-          title="Save Recording"
-          onPress={() => saveTrack()}  // Ensure proper function call
-          color="#1E90FF"
-        />
-      ) : null}
+      {showSaveButton && (
+        <View style={styles.saveButtonContainer}>
+          <Button
+            title="Save Recording"
+            onPress={saveTrack}
+            color="#1E90FF"
+            style={styles.saveButton}
+          />
+        </View>
+      )}
     </View>
   );
 };
@@ -68,6 +95,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 20,
     backgroundColor: '#fff',
+  },
+  saveButtonContainer: {
+    marginTop: 12,
+  },
+  saveButton: {
+    marginTop: 12,
   },
 });
 

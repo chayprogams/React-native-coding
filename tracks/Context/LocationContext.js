@@ -22,11 +22,9 @@ export const LocationContextProvider = ({children}) => {
   }
 
   const AddLocation = (location, recording) => {
-    console.log('HI');
     dispatch({type: 'ADD_LOCATION', payload: location});
     if (recording) {
       dispatch({type: 'ADD_CURRENT_LOCATION', payload: location});
-      console.log(recording);
     }
   }
 
@@ -40,7 +38,7 @@ export const LocationContextProvider = ({children}) => {
 
   return (
     <LocationContext.Provider value={{
-      StartRecording, StopRecording, AddLocation, state, ChangeName, reset,
+      StartRecording, StopRecording, AddLocation, state, ChangeName, reset
     }}>
       {children}
     </LocationContext.Provider>
